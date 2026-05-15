@@ -1,0 +1,9 @@
+{
+  "name": "Remix: Remix: CVly",
+  "description": "AI-powered resume analyzer simulating real-world hiring personas (ATS, HR, Hiring Manager).",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "AI Analysis",
+    "PDF Processing"
+  ]
+}
