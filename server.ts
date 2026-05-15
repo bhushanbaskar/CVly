@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,14 +15,14 @@ app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
 // --- Gemini AI Setup ---
-let genAIInstance: GoogleGenAI | null = null;
+let genAIInstance: GoogleGenerativeAI | null = null;
 function getGenAI() {
   if (!genAIInstance) {
     const apiKey = process.env.API_KEY_GEMINI || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error("API_KEY_GEMINI environment variable is required");
     }
-    genAIInstance = new GoogleGenAI({ apiKey });
+    genAIInstance = new GoogleGenerativeAI(apiKey);
   }
   return genAIInstance;
 }
@@ -84,12 +84,11 @@ app.post("/api/extract-job", async (req, res) => {
       { "title": "Job Title", "description": "The detailed job description and requirements", "extraInfo": "Brief summary of key technical must-haves or company context" }
     `;
 
-    const result = await withRetry(() => genAI.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt
-    }));
-    const resultText = result.text;
-    const cleanedJson = resultText.replace(/```json|```/g, "").trim();
+    const result = await withRetry(() => genAI.getGenerativeModel({
+      model: "gemini-1.5-flash"
+    }).generateContent(prompt));
+    const responseText = result.response.text();
+    const cleanedJson = responseText.replace(/```json|```/g, "").trim();
     
     res.json(JSON.parse(cleanedJson));
   } catch (error: any) {
@@ -166,12 +165,11 @@ app.post("/api/analyze", async (req, res) => {
       contents = { parts };
     }
 
-    const result = await withRetry(() => genAI.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: contents
-    }));
-    const resultText = result.text;
-    const cleanedJson = resultText.replace(/```json|```/g, "").trim();
+    const result = await withRetry(() => genAI.getGenerativeModel({
+      model: "gemini-1.5-flash"
+    }).generateContent(contents));
+    const responseText = result.response.text();
+    const cleanedJson = responseText.replace(/```json|```/g, "").trim();
     
     res.json(JSON.parse(cleanedJson));
   } catch (error: any) {
@@ -205,12 +203,11 @@ app.post("/api/design-suggestions", async (req, res) => {
       Be very specific to the role and the company mentioned.
     `;
 
-    const result = await withRetry(() => genAI.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt
-    }));
-    const resultText = result.text;
-    const cleanedJson = resultText.replace(/```json|```/g, "").trim();
+    const result = await withRetry(() => genAI.getGenerativeModel({
+      model: "gemini-1.5-flash"
+    }).generateContent(prompt));
+    const responseText = result.response.text();
+    const cleanedJson = responseText.replace(/```json|```/g, "").trim();
     
     res.json(JSON.parse(cleanedJson));
   } catch (error: any) {
@@ -230,12 +227,6 @@ async function setupFrontend() {
       appType: "spa",
     });
     app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
   }
 }
 
@@ -245,14 +236,6 @@ if (!process.env.VERCEL) {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
-  });
-} else {
-  // On Vercel, the app is exported and the frontend setup is partially handled by the export
-  // However, we still need static serving if we route to this lambda for SPA fallback
-  const distPath = path.join(process.cwd(), "dist");
-  app.use(express.static(distPath));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
   });
 }
 
