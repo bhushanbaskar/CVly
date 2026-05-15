@@ -12,10 +12,6 @@
       "dest": "server.ts"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/dist/assets/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "server.ts"
     }
