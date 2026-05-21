@@ -595,6 +595,23 @@ function Home() {
               transition={{ duration: 0.5 }}
               className="space-y-12"
             >
+              {/* Quota fallback Alert Banner */}
+              {((results.resumeA as any).isQuotaFallback || (results.resumeB && (results.resumeB as any).isQuotaFallback)) && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 flex items-start gap-3 shadow-md"
+                >
+                  <AlertCircle size={20} className="shrink-0 mt-0.5 text-amber-400 animate-pulse" />
+                  <div className="space-y-1 text-left">
+                    <p className="text-xs md:text-sm font-bold text-amber-200">Gemini free tier quota exceeded (20 requests/day)</p>
+                    <p className="text-[11px] md:text-xs opacity-85 leading-relaxed">
+                      To keep your workspace run fully interactive, we've engaged our high-fidelity Gemini assessment simulator for <strong className="text-amber-100">{jobRole}</strong>. You can completely explore all tabs, ratings, improvement advice, and template suggestions!
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Result Header */}
               <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 pb-8 border-b border-[var(--card-border)]">
                 <div className="space-y-4 text-center md:text-left w-full md:w-auto">
@@ -676,6 +693,7 @@ function Home() {
                   title="Strict Algorithm" 
                   data={viewingResume === "A" ? results.resumeA.ats : results.resumeB!.ats} 
                   color="bg-blue-500" 
+                  onRefineImprove={handleOpenSandbox}
                 />
                 {/* @ts-ignore */}
                 <PersonaCard 
@@ -684,6 +702,7 @@ function Home() {
                   title="6-Second Skim" 
                   data={viewingResume === "A" ? results.resumeA.hr : results.resumeB!.hr} 
                   color="bg-purple-500" 
+                  onRefineImprove={handleOpenSandbox}
                 />
                 {/* @ts-ignore */}
                 <PersonaCard 

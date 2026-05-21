@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Sparkles, Copy, Check, Loader2, ArrowRight, RefreshCw } from "lucide-react";
+import { X, Sparkles, Copy, Check, Loader2, ArrowRight, RefreshCw, AlertCircle } from "lucide-react";
 import { refineBulletPoint, type RefinedBulletResponse } from "../services/api";
 
 interface BulletRefinementSandboxProps {
@@ -118,7 +118,7 @@ export const BulletRefinementSandbox = ({
 
   return (
     <AnimatePresence>
-      <div data-lenis-prevent="true" className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div data-lenis-prevent="true" className="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4">
         {/* Backdrop blur overlay */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -146,7 +146,7 @@ export const BulletRefinementSandbox = ({
                   onClose();
                 }}
                 aria-label="Close Refinement Sandbox"
-                className="relative z-[60] p-1 px-1.5 md:p-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700/50 text-neutral-400 hover:text-white rounded-lg transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 flex items-center justify-center shrink-0"
+                className="relative z-[220] p-1 px-1.5 md:p-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700/50 text-neutral-400 hover:text-white rounded-lg transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 flex items-center justify-center shrink-0"
               >
                 <X size={16} className="md:w-5 md:h-5" />
               </button>
@@ -205,7 +205,24 @@ export const BulletRefinementSandbox = ({
             )}
 
             {!loading && !error && data && (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 pb-2">
+              <>
+                {(data as any).isQuotaFallback && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 flex items-start gap-2.5 text-[11px] md:text-xs"
+                  >
+                    <AlertCircle size={16} className="shrink-0 mt-0.5 text-amber-400 animate-pulse" />
+                    <div>
+                      <p className="font-bold text-amber-200 block md:inline md:mr-1">Gemini free tier quota exceeded (20 requests/day).</p>
+                      <p className="opacity-80 mt-0.5 md:mt-0 md:inline leading-relaxed">
+                        To keep this sandbox fully open and interactive, we've loaded a professional simulation of Google's XYZ formula targeting <strong className="text-amber-100">{jobRole || "your industry"}</strong>.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 pb-2">
                 {/* Left Column: XYZ Breakdown */}
                 <div className="md:col-span-5 space-y-3 md:space-y-4">
                   <h4 className="text-xs md:text-sm font-bold text-amber-300 flex items-center gap-1.5">
@@ -365,6 +382,7 @@ export const BulletRefinementSandbox = ({
                   </div>
                 </div>
               </div>
+              </>
             )}
           </div>
 

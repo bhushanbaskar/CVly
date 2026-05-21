@@ -129,7 +129,7 @@ export const PersonaCard = ({
                   <AlertCircle className="text-orange-500 shrink-0 mt-0.5" size={14} />
                   <span className="opacity-80">{point}</span>
                 </div>
-                {onRefineImprove && name === "Hiring Manager" && (
+                {onRefineImprove && (
                   <button
                     onClick={() => onRefineImprove(point)}
                     aria-label={`Refine bullet point: "${point}"`}
