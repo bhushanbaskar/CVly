@@ -23,6 +23,7 @@ export const UploadZone = ({
 }: UploadZoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputId = React.useId();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -56,38 +57,51 @@ export const UploadZone = ({
   };
 
   return (
-    <div className={cn("w-full h-full flex flex-col", isSecondary && "opacity-90")}>
+    <div className={cn("w-full h-full flex flex-col pointer-events-auto", isSecondary && "opacity-90")}>
       <div className={cn(
         "glass group relative overflow-hidden shadow-2xl flex flex-col transition-all",
         "p-4 md:p-6 rounded-2xl md:rounded-[32px] gap-3 md:gap-4"
       )}>
         <div className="glass-reflection" />
-        {/* Header */}
+        
+        {/* Hidden but accessible input */}
+        <input 
+          id={inputId}
+          ref={fileInputRef}
+          type="file" 
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" 
+          accept=".pdf,.png,.jpg,.jpeg" 
+          onChange={(e) => {
+            const selectedFile = e.target.files?.[0];
+            if (selectedFile) validateAndSelect(selectedFile);
+            // Reset value so same file can be re-selected if needed
+            e.target.value = "";
+          }} 
+        />
+
+        <div className="relative z-10 flex flex-col gap-3 md:gap-4 pointer-events-none">
+          {/* Header */}
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-white font-bold text-base shine">{label}</h3>
           </div>
           {file && (
             <button 
+              type="button"
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 onFileSelect(null);
               }}
-              className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/40 hover:text-white transition-colors"
+              className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/40 hover:text-white transition-colors relative z-[60] pointer-events-auto"
             >
               <X size={16} />
             </button>
           )}
         </div>
 
-        {/* Drop Zone Area */}
-        <div 
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className="relative group cursor-pointer py-2"
-        >
+        {/* Drop Zone Area - purely visual now as input covers it */}
+        <div className="relative py-2">
           {/* Main Card */}
           <div className={cn(
             "relative w-full bg-white/[0.02] border border-white/5 rounded-xl md:rounded-2xl flex flex-col items-center justify-center gap-2 md:gap-3 transition-all overflow-hidden",
@@ -95,17 +109,6 @@ export const UploadZone = ({
             isDragging ? "border-[var(--accent)] bg-[var(--accent)]/5 scale-[0.98]" : "group-hover:border-white/10 group-hover:bg-white/[0.04]",
             file && "border-green-500/30"
           )}>
-            <input 
-              ref={fileInputRef}
-              type="file" 
-              className="hidden" 
-              accept=".pdf,.png,.jpg,.jpeg" 
-              onChange={(e) => {
-                const selectedFile = e.target.files?.[0];
-                if (selectedFile) validateAndSelect(selectedFile);
-              }} 
-            />
-
             <AnimatePresence mode="wait">
               {file ? (
                 <motion.div 
@@ -117,7 +120,7 @@ export const UploadZone = ({
                   <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 mb-1">
                     <FileText size={20} />
                   </div>
-                  <p className="font-medium truncate max-w-[150px] text-xs text-[var(--text-color)]">{file.name}</p>
+                  <p className="font-medium truncate max-w-[150px] text-xs text-white">{file.name}</p>
                   <div className="flex items-center gap-2 text-green-500 text-[9px] font-bold uppercase tracking-widest">
                     <CheckCircle2 size={10} />
                     Ready
@@ -131,16 +134,16 @@ export const UploadZone = ({
                   className="flex flex-col items-center gap-3 px-4 text-center"
                 >
                   <div className={cn(
-                    "w-10 h-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-[var(--text-color)] opacity-40 transition-colors",
+                    "w-10 h-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center opacity-40 transition-colors",
                     isDragging ? "text-[var(--accent)] bg-[var(--accent)]/10 border-[var(--accent)]/20 opacity-100" : "group-hover:bg-white/10 group-hover:opacity-100"
                   )}>
                     <UploadCloud size={20} />
                   </div>
                   <div className="space-y-1">
-                    <p className="font-medium text-xs leading-tight text-[var(--text-color)]">Choose a file or drag & drop it here</p>
-                    <p className="opacity-30 text-[9px] text-[var(--text-color)]">PDF or Images, up to 5 MB.</p>
+                    <p className="font-medium text-xs leading-tight text-white">Choose a file or drag & drop</p>
+                    <p className="opacity-30 text-[9px] text-white">PDF or Images, up to 5 MB.</p>
                   </div>
-                  <div className="mt-1 px-4 py-1.5 bg-[var(--text-color)] text-[var(--bg-color)] text-[9px] font-bold rounded-lg group-hover:bg-[var(--accent)] group-hover:text-white transition-all shadow-sm">
+                  <div className="mt-1 px-4 py-1.5 bg-white text-black text-[9px] font-bold rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
                     Browse File
                   </div>
                 </motion.div>
@@ -152,24 +155,22 @@ export const UploadZone = ({
         {/* Action Buttons */}
         <div className="flex items-center justify-between mt-2">
           {!file ? (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                fileInputRef.current?.click();
-              }}
-              className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-[var(--text-color)] opacity-60 hover:opacity-100 px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all"
+            <div 
+              className="w-full flex items-center justify-center gap-2 bg-white/5 text-white/60 px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all"
             >
               <UploadCloud size={12} />
               Choose File
-            </button>
+            </div>
           ) : (
-             <div className="w-full flex gap-2">
+             <div className="w-full flex gap-2 pointer-events-auto">
                <button 
+                type="button"
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   onFileSelect(null);
                 }}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 border border-white/10 text-white/40 hover:text-white px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 border border-white/10 text-white/40 hover:text-white px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all relative z-[60]"
               >
                 <X size={10} />
                 Reset
@@ -180,6 +181,7 @@ export const UploadZone = ({
               </div>
              </div>
           )}
+        </div>
         </div>
       </div>
     </div>

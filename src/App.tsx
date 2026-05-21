@@ -150,7 +150,9 @@ function Home() {
       document.documentElement.style.setProperty("--gradient-angle", `${angle}deg`);
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    if (window.matchMedia("(hover: hover)").matches) {
+      window.addEventListener("mousemove", handleMouseMove);
+    }
     
     // Refresh ScrollTrigger and GSAP on resize
     const handleResize = () => {
@@ -458,9 +460,10 @@ function Home() {
                 </div>
 
                 {/* Form */}
-                <div className="analyzer-card max-w-4xl mx-auto space-y-6 md:space-y-8 glass p-5 md:p-12 rounded-3xl md:rounded-[32px] group">
+                <div className="analyzer-card max-w-4xl mx-auto glass p-5 md:p-12 rounded-3xl md:rounded-[32px] group overflow-hidden relative z-10">
                   <div className="glass-reflection" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div className="relative z-10 space-y-6 md:space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <UploadZone 
                       label="Upload Resume" 
                       file={activeResume} 
@@ -567,6 +570,7 @@ function Home() {
                         <p className="text-sm font-medium">{error}</p>
                       </motion.div>
                     )}
+                    </div>
                   </div>
                 </div>
               </div>
