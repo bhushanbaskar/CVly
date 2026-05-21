@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { CheckCircle2, AlertCircle, Copy, Check } from "lucide-react";
+import { CheckCircle2, AlertCircle, Copy, Check, Sparkles } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { type PersonaResult } from "../services/api";
@@ -15,6 +15,7 @@ interface PersonaCardProps {
   title: string;
   data: PersonaResult;
   color: string;
+  onRefineImprove?: (bullet: string) => void;
 }
 
 export const PersonaCard = ({ 
@@ -22,7 +23,8 @@ export const PersonaCard = ({
   name, 
   title, 
   data, 
-  color 
+  color,
+  onRefineImprove
 }: PersonaCardProps) => {
   const [copiedSection, setCopiedSection] = useState<"liked" | "improve" | null>(null);
   const circumference = 2 * Math.PI * 18;
@@ -122,9 +124,21 @@ export const PersonaCard = ({
           </div>
           <ul className="space-y-2">
             {data.improve.map((point, idx) => (
-              <li key={idx} className="flex gap-2 text-sm items-start leading-snug">
-                <AlertCircle className="text-orange-500 shrink-0 mt-0.5" size={14} />
-                <span className="opacity-80">{point}</span>
+              <li key={idx} className="flex flex-col gap-1.5 text-sm items-start leading-snug">
+                <div className="flex gap-2 items-start leading-snug">
+                  <AlertCircle className="text-orange-500 shrink-0 mt-0.5" size={14} />
+                  <span className="opacity-80">{point}</span>
+                </div>
+                {onRefineImprove && name === "Hiring Manager" && (
+                  <button
+                    onClick={() => onRefineImprove(point)}
+                    aria-label={`Refine bullet point: "${point}"`}
+                    className="mt-1 ml-6 px-2.5 py-1 text-[10px] font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:ring-offset-1 focus:ring-offset-neutral-900 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <Sparkles size={11} className="text-amber-400" />
+                    Refine Bullet
+                  </button>
+                )}
               </li>
             ))}
           </ul>

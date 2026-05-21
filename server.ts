@@ -229,6 +229,62 @@ async function startServer() {
     }
   });
 
+  // Refine Weak Bullet Point with Google XYZ Formula + 3 Tones
+  app.post("/api/refine-bullet", async (req, res) => {
+    try {
+      const { bullet, jobRole } = req.body;
+      if (!bullet) return res.status(400).json({ error: "Bullet text is required" });
+
+      const genAI = getGenAI();
+      const prompt = `
+        SYSTEM: You are an elite career coach specialized in the Google XYZ Formula for resume bullet points:
+        - Accomplished [X] as measured by [Y], by doing [Z]
+
+        TASK: Deconstruct and rewrite the following weak bullet point for a candidate applying to the role: ${jobRole || "Target Industry"}.
+        
+        WEAK BULLET POINT: "${bullet}"
+
+        Deconstruct it into the XYZ components (extracting what they accomplished, what they measured/could measure, and what actions/tools they did). Note: If the original bullet lacks a metric [Y], think of a realistic, standard benchmark metric that fits the domain (e.g., latency reduction, cost saving, test coverage, retention increase, etc.) and state it as a suggested metric in [Y].
+
+        Then, rewrite the bullet point into exactly three distinct high-impact variations representing different professional tones:
+        1. "resultDriven": Optimized for Technical Hiring Managers and Executives. Focus on business value, technical scale, efficiency gains, and high-impact metrics.
+        2. "semanticKeyword": Optimized for ATS/Machine Screening. Inject high-density standard keywords, core skills, certifications, and industry tools related to ${jobRole || "this domain"}.
+        3. "narrativeImpact": Optimized for HR and Recruiters. Focus on communication, proactive leadership, cross-functional collaboration, problem-solving, and professional initiative.
+
+        Return ONLY a JSON object with this exact structure:
+        {
+          "xyzDecomposition": {
+            "x": "Accomplished [X]: (Clear, active-verb explanation of the achievement)",
+            "y": "Measured by [Y]: (Quantified metrics, scale, or business performance indicators)",
+            "z": "By doing [Z]: (Specific actions, techniques, tools, or methodologies utilized)"
+          },
+          "variations": {
+            "resultDriven": "Complete high-impact bullet point optimized for managers",
+            "semanticKeyword": "Complete keyword-rich bullet point optimized for ATS",
+            "narrativeImpact": "Complete collaborative/leadership bullet point optimized for HR"
+          }
+        }
+
+        Make sure each variation is a single, complete, polished bullet point sentence ready to be copied into a resume. Do not include markdown bullet points like '*' or '-' in the value fields.
+      `;
+
+      const result = await withRetry(() => genAI.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        }
+      }));
+      const resultText = result.text;
+      const cleanedJson = resultText.replace(/```json|```/g, "").trim();
+      
+      res.json(JSON.parse(cleanedJson));
+    } catch (error: any) {
+      console.error("Refine bullet error:", error);
+      res.status(500).json({ error: error.message || "Failed to refine bullet point" });
+    }
+  });
+
   // --- Vite / Frontend Setup ---
 
   if (process.env.NODE_ENV !== "production") {

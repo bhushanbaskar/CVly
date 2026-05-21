@@ -42,6 +42,7 @@ import { analyzeFullResume, extractJobFromUrl, type AnalysisResponse, type Perso
 import { Navbar } from "./components/Navbar";
 import { UploadZone } from "./components/UploadZone";
 import { PersonaCard } from "./components/PersonaCard";
+import { BulletRefinementSandbox } from "./components/BulletRefinementSandbox";
 import { AnalysisSkeleton } from "./components/SkeletonLoader";
 import { Footer } from "./components/Footer";
 import { DesignGuide } from "./pages/DesignGuide";
@@ -79,6 +80,15 @@ function Home() {
   const [results, setResults] = useState<AnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewingResume, setViewingResume] = useState<"A" | "B">("A");
+  
+  // Sandbox states
+  const [isSandboxOpen, setIsSandboxOpen] = useState(false);
+  const [sandboxBulletText, setSandboxBulletText] = useState("");
+
+  const handleOpenSandbox = (bullet: string) => {
+    setSandboxBulletText(bullet);
+    setIsSandboxOpen(true);
+  };
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -682,6 +692,7 @@ function Home() {
                   title="Technical Quality" 
                   data={viewingResume === "A" ? results.resumeA.manager : results.resumeB!.manager} 
                   color="bg-orange-500" 
+                  onRefineImprove={handleOpenSandbox}
                 />
               </div>
 
@@ -875,6 +886,13 @@ function Home() {
           </main>
         )}
       </AnimatePresence>
+
+      <BulletRefinementSandbox
+        isOpen={isSandboxOpen}
+        onClose={() => setIsSandboxOpen(false)}
+        bulletText={sandboxBulletText}
+        jobRole={jobRole}
+      />
     </div>
   );
 }
@@ -961,12 +979,18 @@ function About() {
 export default function App() {
   useEffect(() => {
     const lenis = new Lenis();
+    (window as any).lenis = lenis;
     function raf(time: number) {
-      lenis.raf(time);
+      if ((window as any).lenis) {
+        lenis.raf(time);
+      }
       requestAnimationFrame(raf);
     }
     requestAnimationFrame(raf);
-    return () => lenis.destroy();
+    return () => {
+      lenis.destroy();
+      delete (window as any).lenis;
+    };
   }, []);
 
   return (

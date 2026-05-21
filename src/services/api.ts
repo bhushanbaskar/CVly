@@ -87,3 +87,37 @@ export async function extractJobFromUrl(url: string): Promise<{ title: string; d
 
   return response.json();
 }
+
+export interface RefinedBulletResponse {
+  xyzDecomposition: {
+    x: string;
+    y: string;
+    z: string;
+  };
+  variations: {
+    resultDriven: string;
+    semanticKeyword: string;
+    narrativeImpact: string;
+  };
+}
+
+export async function refineBulletPoint(bullet: string, jobRole: string): Promise<RefinedBulletResponse> {
+  const response = await fetch("/api/refine-bullet", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ bullet, jobRole }),
+  });
+
+  if (!response.ok) {
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Bullet refinement failed");
+    } else {
+      const text = await response.text();
+      throw new Error(`Server error (${response.status}): ${text.substring(0, 100)}`);
+    }
+  }
+
+  return response.json();
+}
